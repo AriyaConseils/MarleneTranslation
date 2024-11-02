@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/configurations">
+        <file>ressources/MarleneTranslation.ico</file>
+        <file>ressources/CodePaysInterface.awt</file>
+        <file>ressources/TraductionInterface.awt</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,14 @@
+# Ignore build directories
+build/
+
+# Ignore install directories
+installMarlene/
+
+# Ignore Qt project user files
+*.pro.user
+headerInterface.json
+requestInterface.json
+CodePaysInterface.json
+TraductionInterface.awt
+CodePaysInterface.awt
+MarleneTranslationInstaller.exe
