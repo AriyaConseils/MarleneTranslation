@@ -81,6 +81,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->comboBoxLanguage->addItems(translator.languageNames());
     ui->comboBoxLanguage->setCurrentIndex(-1);
     connect(ui->comboBoxLanguage, &QComboBox::currentTextChanged, this, &MainWindow::on_language_Changed);
+    initializeLanguageList();
 }
 
 MainWindow::~MainWindow()
@@ -202,17 +203,22 @@ void MainWindow::on_toolButtonTsFilesPath_clicked()
     // Si un dossier a été sélectionné, on le parcourt pour récupérer les fichiers .ts
     if (!directoryPath.isEmpty()) {
         ui->lineEditTsFilesPath->setText(directoryPath);
-        QDir dir(directoryPath);
-        QStringList tsFiles = dir.entryList(QStringList() << "*.ts", QDir::Files);
-
-        // Ajoute chaque fichier .ts trouvé dans le ListWidget
-        ui->listWidgetTsList->clear();
-        for (const QString &fileName : tsFiles) {
-            ui->listWidgetTsList->addItem(fileName);
-        }
+        refreshTsFiles(ui->lineEditTsFilesPath->text());
     }
 }
 
+
+void MainWindow::refreshTsFiles(const QString &path)
+{
+    QDir dir(path);
+    QStringList tsFiles = dir.entryList(QStringList() << "*.ts", QDir::Files);
+
+    // Ajoute chaque fichier .ts trouvé dans le ListWidget
+    ui->listWidgetTsList->clear();
+    for (const QString &fileName : tsFiles) {
+        ui->listWidgetTsList->addItem(fileName);
+    }
+}
 
 void MainWindow::populateTableWidget(const QMap<QString, QVector<TranslationMessage>> &translations)
 {
@@ -442,4 +448,73 @@ void MainWindow::manageLanguage(){
         ui->comboBoxLanguage->setCurrentIndex(-1);
     }
 
+}
+
+void MainWindow::on_pushButtonUpdateTsFiles_clicked()
+{
+    // Vérification des champs obligatoires
+    if (ui->lineEditProjectName->text().isEmpty() ||
+        ui->lineEditSourceCodePath->text().isEmpty() ||
+        ui->lineEditTsFilesPath->text().isEmpty()) {
+        qDebug() << "Veuillez remplir tous les champs requis.";
+        return;
+    }
+
+    // Nom de base pour les fichiers de traduction
+    QString projectName = ui->lineEditProjectName->text();
+
+    // Boucle sur tous les éléments de listWidgetLanguage
+    for (int i = 0; i < ui->listWidgetLanguage->count(); ++i) {
+        QListWidgetItem *item = ui->listWidgetLanguage->item(i);
+
+        // Vérifier si la case est cochée
+        if (item->checkState() == Qt::Checked) {
+            QString languageName = item->text(); // Nom de la langue (ex: "French")
+
+            // Appeler setLanguage avec le nom de la langue
+            m_lupdate->setLanguage(languageName.toStdString());
+            QString languageCode = m_lupdate->getAssociatedCode(languageName.toStdString()).c_str();
+            languageCode = languageCode.split("_").first();
+            // Construire le nom de fichier de sortie
+            QString outputFileName = ui->lineEditTsFilesPath->text() + "/" + projectName + "_" + languageCode + ".ts";
+
+            // Sauvegarder le fichier de traduction pour cette langue
+            m_lupdate->saveToTSFile(outputFileName.toStdString());
+        }
+    }
+    refreshTsFiles(ui->lineEditTsFilesPath->text());
+}
+
+
+
+void MainWindow::on_toolButtonSourceCodePath_clicked()
+{
+    // Ouvre une boîte de dialogue pour sélectionner un dossier contenant des fichiers sources (cpp et ui)
+    QString directoryPath = QFileDialog::getExistingDirectory(this,
+                                                              tr("Sélectionner un dossier contenant des fichiers src"),
+                                                              QString(),
+                                                              QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+
+    // Si un dossier a été sélectionné, on le parcourt pour récupérer les fichiers .ts
+    if (!directoryPath.isEmpty()) {
+        ui->lineEditSourceCodePath->setText(directoryPath);
+        m_lupdate = new TranslationExtractor(directoryPath.toStdString());
+        m_lupdate->load();
+    }
+}
+
+void MainWindow::initializeLanguageList() {
+    // Vider la liste si elle contient déjà des éléments
+    ui->listWidgetLanguage->clear();
+
+    // Parcourir m_languageMap et créer un QListWidgetItem avec une case à cocher pour chaque langue
+    foreach(auto languageName, translator.languageNames()) {
+        // Créer un nouvel item pour la liste avec une case à cocher
+        QListWidgetItem *item = new QListWidgetItem(languageName, ui->listWidgetLanguage);
+        item->setFlags(item->flags() | Qt::ItemIsUserCheckable); // Activer la case à cocher
+        item->setCheckState(Qt::Unchecked); // Par défaut décoché
+
+        // Ajouter l'item à la liste
+        ui->listWidgetLanguage->addItem(item);
+    }
 }

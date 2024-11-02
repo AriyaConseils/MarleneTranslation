@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "TSTranslationReader.h"
 #include <QListWidgetItem>
+#include "lupdate/translationextractor.h"
 
 
 
@@ -49,11 +50,18 @@ private slots:
 
     void on_listWidgetTsList_itemSelectionChanged();
 
+    void on_pushButtonUpdateTsFiles_clicked();
+
+    void on_toolButtonSourceCodePath_clicked();
+
 private:
     Ui::MainWindow *ui;
     TSTranslationReader translator;
-
+    TranslationExtractor *m_lupdate;
     void populateTableWidget(const QMap<QString, QVector<TranslationMessage>> &translations);
     void manageLanguage();
+    void initializeLanguageList();
+    void refreshTsFiles(const QString &path);
+
 };
 #endif // MAINWINDOW_H

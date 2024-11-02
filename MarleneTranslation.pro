@@ -12,18 +12,25 @@ RC_ICONS += ressources/MarleneTranslation.ico
 SOURCES += \
     src/chatgptclient.cpp \
     src/interfacemanager.cpp \
+    src/lupdate/cppfileparser.cpp \
+    src/lupdate/translationextractor.cpp \
+    src/lupdate/uifileparser.cpp \
     src/main.cpp \
     src/mainwindow.cpp \
-    src/tstranslationreader.cpp
+    src/tstranslationreader.cpp \
+    src/3rdParty/TinyXml2/tinyxml2.cpp
 
 HEADERS += \
     src/FileAggregator.h \
     src/InterfaceDictionary.h \
     src/chatgptclient.h \
     src/interfacemanager.h \
+    src/lupdate/cppfileparser.h \
+    src/lupdate/translationextractor.h \
+    src/lupdate/uifileparser.h \
     src/mainwindow.h \
-    src/tstranslationreader.h
-
+    src/tstranslationreader.h \
+    src/3rdParty/TinyXml2/tinyxml2.h
 FORMS += \
     src/interfacemanager.ui \
     src/mainwindow.ui
@@ -36,3 +43,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 RESOURCES += \
     ressources.qrc
 
+INCLUDEPATH += $$PWD/src/3rdParty/TinyXml2
