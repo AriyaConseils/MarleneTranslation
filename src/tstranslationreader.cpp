@@ -14,6 +14,125 @@
 #include <QJsonArray>
 
 
+
+
+TSTranslationReader::TSTranslationReader(QObject *parent)
+    : QObject(parent)
+{
+    m_languageMap = {
+        { "Afrikaans", "af" },
+        { "Albanian", "sq" },
+        { "Amharic", "am" },
+        { "Arabic", "ar" },
+        { "Armenian", "hy" },
+        { "Azerbaijani", "az" },
+        { "Basque", "eu" },
+        { "Belarusian", "be" },
+        { "Bengali", "bn" },
+        { "Bosnian", "bs" },
+        { "Bulgarian", "bg" },
+        { "Catalan", "ca" },
+        { "Cebuano", "ceb" },
+        { "Chinese", "zh" },
+        { "Corsican", "co" },
+        { "Croatian", "hr" },
+        { "Czech", "cs" },
+        { "Danish", "da" },
+        { "Dutch", "nl" },
+        { "English", "en" },
+        { "Esperanto", "eo" },
+        { "Estonian", "et" },
+        { "Filipino", "fil" },
+        { "Finnish", "fi" },
+        { "French", "fr" },
+        { "Frisian", "fy" },
+        { "Galician", "gl" },
+        { "Georgian", "ka" },
+        { "German", "de" },
+        { "Greek", "el" },
+        { "Gujarati", "gu" },
+        { "Haitian Creole", "ht" },
+        { "Hausa", "ha" },
+        { "Hawaiian", "haw" },
+        { "Hebrew", "he" },
+        { "Hindi", "hi" },
+        { "Hmong", "hmn" },
+        { "Hungarian", "hu" },
+        { "Icelandic", "is" },
+        { "Igbo", "ig" },
+        { "Indonesian", "id" },
+        { "Irish", "ga" },
+        { "Italian", "it" },
+        { "Japanese", "ja" },
+        { "Javanese", "jv" },
+        { "Kannada", "kn" },
+        { "Kazakh", "kk" },
+        { "Khmer", "km" },
+        { "Kinyarwanda", "rw" },
+        { "Korean", "ko" },
+        { "Kurdish", "ku" },
+        { "Kyrgyz", "ky" },
+        { "Lao", "lo" },
+        { "Latin", "la" },
+        { "Latvian", "lv" },
+        { "Lithuanian", "lt" },
+        { "Luxembourgish", "lb" },
+        { "Macedonian", "mk" },
+        { "Malagasy", "mg" },
+        { "Malay", "ms" },
+        { "Malayalam", "ml" },
+        { "Maltese", "mt" },
+        { "Maori", "mi" },
+        { "Marathi", "mr" },
+        { "Mongolian", "mn" },
+        { "Myanmar (Burmese)", "my" },
+        { "Nepali", "ne" },
+        { "Norwegian", "no" },
+        { "Nyanja (Chichewa)", "ny" },
+        { "Odia (Oriya)", "or" },
+        { "Pashto", "ps" },
+        { "Persian", "fa" },
+        { "Polish", "pl" },
+        { "Portuguese", "pt" },
+        { "Punjabi", "pa" },
+        { "Romanian", "ro" },
+        { "Russian", "ru" },
+        { "Samoan", "sm" },
+        { "Scots Gaelic", "gd" },
+        { "Serbian", "sr" },
+        { "Sesotho", "st" },
+        { "Shona", "sn" },
+        { "Sindhi", "sd" },
+        { "Sinhala", "si" },
+        { "Slovak", "sk" },
+        { "Slovenian", "sl" },
+        { "Somali", "so" },
+        { "Spanish", "es" },
+        { "Sundanese", "su" },
+        { "Swahili", "sw" },
+        { "Swedish", "sv" },
+        { "Tajik", "tg" },
+        { "Tamil", "ta" },
+        { "Tatar", "tt" },
+        { "Telugu", "te" },
+        { "Thai", "th" },
+        { "Turkish", "tr" },
+        { "Turkmen", "tk" },
+        { "Ukrainian", "uk" },
+        { "Urdu", "ur" },
+        { "Uyghur", "ug" },
+        { "Uzbek", "uz" },
+        { "Vietnamese", "vi" },
+        { "Welsh", "cy" },
+        { "Xhosa", "xh" },
+        { "Yiddish", "yi" },
+        { "Yoruba", "yo" },
+        { "Zulu", "zu" }
+    };
+
+}
+
+
 bool TSTranslationReader::load(const QString &filePath) {
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -23,6 +142,18 @@ bool TSTranslationReader::load(const QString &filePath) {
 
     QXmlStreamReader xml(&file);
     QString currentContext;
+
+    // Lecture de l'attribut `language` dans l'élément racine <TS>
+    if (xml.readNextStartElement()) {
+        if (xml.name() == QStringLiteral("TS")) {
+            if (xml.attributes().hasAttribute("language")) {
+                setLanguageCode(xml.attributes().value("language").toString());
+                qDebug() << "Language code found:" << m_languageCode;
+            } else {
+                setLanguageCode("");
+            }
+        }
+    }
 
     while (!xml.atEnd() && !xml.hasError()) {
         xml.readNext();
@@ -327,3 +458,24 @@ QString TSTranslationReader::languageCode() const
     return m_languageCode;
 }
 
+QStringList TSTranslationReader::languageNames() const
+{
+    return m_languageMap.keys();
+}
+
+void TSTranslationReader::setLanguageCode(const QString &newLanguageCode) {
+    // Extraction du code de base de la langue (par exemple "en" de "en_US")
+    QString basicLanguageCode = newLanguageCode.split("_").first();
+
+    // Recherche du nom de la langue dans la map en utilisant le code de base
+    m_language = "";  // Par défaut, vide si non trouvé
+    for (auto it = m_languageMap.cbegin(); it != m_languageMap.cend(); ++it) {
+        if (it.value() == basicLanguageCode) {
+            m_language = it.key();  // Nom de la langue trouvée
+            break;
+        }
+    }
+
+    // Stockage du code complet
+    m_languageCode = newLanguageCode;
+}

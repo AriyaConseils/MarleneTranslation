@@ -18,20 +18,6 @@
     <item row="3" column="1">
      <widget class="QComboBox" name="comboBoxLanguage"/>
     </item>
-    <item row="2" column="1" colspan="3">
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QLineEdit" name="lineEditTsFilePath"/>
-      </item>
-      <item>
-       <widget class="QToolButton" name="toolButtonTsFilePath">
-        <property name="text">
-         <string>...</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
     <item row="5" column="3">
      <widget class="QWidget" name="widget" native="true">
       <property name="minimumSize">
@@ -59,35 +45,6 @@
         <widget class="QPushButton" name="pushButtonSaveAs">
          <property name="text">
           <string>Save as ...</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QWidget" name="widgetInterface" native="true">
-      <property name="minimumSize">
-       <size>
-        <width>300</width>
-        <height>0</height>
-       </size>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Currente Interface</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="comboBoxInterface"/>
-       </item>
-       <item>
-        <widget class="QToolButton" name="toolButtonAddInterface">
-         <property name="text">
-          <string>+</string>
          </property>
         </widget>
        </item>
@@ -130,6 +87,52 @@
       </column>
      </widget>
     </item>
+    <item row="3" column="0" rowspan="2">
+     <widget class="QListWidget" name="listWidgetTsList"/>
+    </item>
+    <item row="2" column="0" colspan="4">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLineEdit" name="lineEditTsFilesPath"/>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButtonTsFilesPath">
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="0" column="0">
+     <widget class="QWidget" name="widgetInterface" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>300</width>
+        <height>0</height>
+       </size>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Currente Interface</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboBoxInterface"/>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButtonAddInterface">
+         <property name="text">
+          <string>+</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -138,7 +141,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

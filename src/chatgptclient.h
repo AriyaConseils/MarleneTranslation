@@ -14,7 +14,6 @@ public:
     void sendMessage(const QString &message);
     void setLanguage(const QString &language){ m_language = language;}
     QString language(){return m_language;}
-    QStringList availableLanguage(){return m_languageNames;}
 
 signals:
     void messageReceived(const QString &response);
@@ -26,8 +25,7 @@ private slots:
 private:
     QNetworkAccessManager networkManager;
     QString m_interface;
-    QString m_language = QString("English");
-    QStringList m_languageNames;
+    QString m_language;
 };
 
 #endif // CHATGPTCLIENT_H

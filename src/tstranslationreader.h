@@ -16,6 +16,7 @@ class TSTranslationReader: public QObject
 {
     Q_OBJECT
 public:
+    TSTranslationReader(QObject *parent = nullptr);
     bool load(const QString &filePath);
     QMap<QString, QVector<TranslationMessage>> getTranslations() const;
 
@@ -36,6 +37,10 @@ public:
 
     QString languageCode() const;
 
+    QStringList languageNames() const;
+
+    void setLanguageCode(const QString &newLanguageCode);
+
 signals:
     void generatedTranslationChanged(const QString &, const QString &, const QString &);
     void allTranslationsCompleted();
@@ -43,8 +48,9 @@ signals:
 private:
     QMap<QString, QVector<TranslationMessage>> translations;
     int activeClientsCount = 0;
-    QString m_language = QString("English");
-    QString m_languageCode = QString("en_US");
+    QMap<QString, QString> m_languageMap;
+    QString m_language;
+    QString m_languageCode;
 };
 
 #endif // TSTRANSLATIONREADER_H

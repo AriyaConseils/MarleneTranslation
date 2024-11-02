@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include "TSTranslationReader.h"
-
+#include <QListWidgetItem>
 
 
 
@@ -28,7 +28,7 @@ public:
     void setInterface(const QString interface);
 
 private slots:
-    void on_toolButtonTsFilePath_clicked();
+    void on_toolButtonTsFilesPath_clicked();
 
     void on_pushButtonUpdate_clicked();
 
@@ -47,10 +47,13 @@ private slots:
 
     void on_language_Changed(const QString &arg1);
 
+    void on_listWidgetTsList_itemSelectionChanged();
+
 private:
     Ui::MainWindow *ui;
     TSTranslationReader translator;
 
     void populateTableWidget(const QMap<QString, QVector<TranslationMessage>> &translations);
+    void manageLanguage();
 };
 #endif // MAINWINDOW_H

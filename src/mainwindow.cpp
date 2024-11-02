@@ -7,6 +7,8 @@
 #include "interfacemanager.h"
 #include <QSettings>
 #include <QShortcut>
+#include <QFileDialog>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -74,21 +76,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(actionMerge, &QAction::triggered, this, &MainWindow::mergeSelectedRow);
     connect(actionMergeAllSelected, &QAction::triggered, this, &MainWindow::mergeAllSelectedRows);
     connect(actionMergeAll, &QAction::triggered, this, &MainWindow::mergeAllRows);
-    connect(actionUpdate, &QAction::triggered, this, &MainWindow::updateSelectedRows); // Connecter Update au slot
+    connect(actionUpdate, &QAction::triggered, this, &MainWindow::updateSelectedRows);
 
-
-    ChatGptClient *client = new ChatGptClient();
-    ui->comboBoxLanguage->addItems(client->availableLanguage());
-    ui->comboBoxLanguage->setCurrentText(client->language());
-    connect(ui->comboBoxLanguage, &QComboBox::currentTextChanged, this, &MainWindow::on_language_Changed); // Connecter Update au slot
-
-    connect(client, &ChatGptClient::messageReceived, [](const QString &response) {
-        qDebug() << "Réponse de ChatGPT:" << response;
-    });
-    connect(client, &ChatGptClient::errorOccurred, [](const QString &error) {
-        qWarning() << "Erreur:" << error;
-    });
-
+    ui->comboBoxLanguage->addItems(translator.languageNames());
+    ui->comboBoxLanguage->setCurrentIndex(-1);
+    connect(ui->comboBoxLanguage, &QComboBox::currentTextChanged, this, &MainWindow::on_language_Changed);
 }
 
 MainWindow::~MainWindow()
@@ -199,51 +191,28 @@ void MainWindow::updateSelectedRows()
 }
 
 
-void MainWindow::on_toolButtonTsFilePath_clicked()
+void MainWindow::on_toolButtonTsFilesPath_clicked()
 {
-    // Ouvre une boîte de dialogue pour sélectionner un fichier .ts
-    QString filePath = QFileDialog::getOpenFileName(this,
-                                                    tr("Sélectionner un fichier TS"),
-                                                    QString(),
-                                                    tr("Fichiers TS (*.ts)"));
+    // Ouvre une boîte de dialogue pour sélectionner un dossier contenant des fichiers .ts
+    QString directoryPath = QFileDialog::getExistingDirectory(this,
+                                                              tr("Sélectionner un dossier contenant des fichiers TS"),
+                                                              QString(),
+                                                              QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-    // Si un fichier a été sélectionné, on met à jour le lineEdit et on remplit le tableau
-    if (!filePath.isEmpty()) {
-        load(filePath);
-    }
+    // Si un dossier a été sélectionné, on le parcourt pour récupérer les fichiers .ts
+    if (!directoryPath.isEmpty()) {
+        ui->lineEditTsFilesPath->setText(directoryPath);
+        QDir dir(directoryPath);
+        QStringList tsFiles = dir.entryList(QStringList() << "*.ts", QDir::Files);
 
-    connect(&translator, &TSTranslationReader::generatedTranslationChanged, this, [=](const QString &context, const QString &source, const QString &newTranslation) {
-        int rowCount = ui->tableWidgetTsValues->rowCount();
-        for (int row = 0; row < rowCount; ++row) {
-            QTableWidgetItem *sourceItem = ui->tableWidgetTsValues->item(row, 0);
-            QTableWidgetItem *contextItem = ui->tableWidgetTsValues->item(row, 3);
-
-            // Vérifie que les éléments existent et que la source et le contexte correspondent
-            if (sourceItem && contextItem) {
-                QString sourceText = sourceItem->text();
-                QString contextText = contextItem->text();
-
-                // Met à jour translationItem si la source et le contexte correspondent
-                if (sourceText == source && contextText == context) {
-
-                    QTableWidgetItem *generatedTranslationItem = ui->tableWidgetTsValues->item(row, 2);
-                    if(!generatedTranslationItem){
-                        generatedTranslationItem = new QTableWidgetItem();
-                        ui->tableWidgetTsValues->setItem(row, 2, generatedTranslationItem);
-                    }
-                    generatedTranslationItem->setText(newTranslation);
-                    QTableWidgetItem *expectedTranslationItem = ui->tableWidgetTsValues->item(row, 1);
-
-                    if (expectedTranslationItem && !expectedTranslationItem->text().isEmpty() && expectedTranslationItem->text() != newTranslation) {
-                        // Appliquer un fond orange à l'item pour indiquer la différence
-                        ui->tableWidgetTsValues->item(row, 2)->setBackground(QColor(255, 165, 0));
-                    }
-                    break;
-                }
-            }
+        // Ajoute chaque fichier .ts trouvé dans le ListWidget
+        ui->listWidgetTsList->clear();
+        for (const QString &fileName : tsFiles) {
+            ui->listWidgetTsList->addItem(fileName);
         }
-    });
+    }
 }
+
 
 void MainWindow::populateTableWidget(const QMap<QString, QVector<TranslationMessage>> &translations)
 {
@@ -306,13 +275,26 @@ void MainWindow::on_pushButtonUpdate_clicked()
 
 void MainWindow::on_pushButtonSave_clicked()
 {
-    save(ui->lineEditTsFilePath->text());
-}
+    QString directoryPath = ui->lineEditTsFilesPath->text();
+    QList<QListWidgetItem *> selectedItems = ui->listWidgetTsList->selectedItems();
+
+    if (!directoryPath.isEmpty() && !selectedItems.isEmpty()) {
+        // Récupère le premier élément sélectionné
+        QString fileName = selectedItems.first()->text();
+
+        // Construit le chemin complet
+        QString fullPath = directoryPath + "/" + fileName;
+
+        // Appelle la fonction de sauvegarde avec le chemin complet
+        save(fullPath);
+    } else {
+        // Gestion d'erreur, par exemple afficher un message si rien n'est sélectionné
+        qDebug() << "Erreur : aucun fichier sélectionné ou chemin non défini.";
+    }}
 
 
 bool MainWindow::load(const QString &filePath)
 {
-    ui->lineEditTsFilePath->setText(filePath);
     if (translator.load(filePath)) {
         populateTableWidget(translator.getTranslations());
     } else {
@@ -395,3 +377,69 @@ void MainWindow::on_language_Changed(const QString &arg1)
     translator.setLanguage(arg1);
 }
 
+void MainWindow::on_listWidgetTsList_itemSelectionChanged()
+{
+    // Récupère les éléments sélectionnés
+    QList<QListWidgetItem *> selectedItems = ui->listWidgetTsList->selectedItems();
+
+    // Vérifie s'il y a un élément sélectionné
+    if (selectedItems.isEmpty()) return;
+
+    QListWidgetItem *item = selectedItems.first();
+    qDebug() << "on_listWidgetTsList_selectionChanged " << item;
+
+    // Récupère le nom du fichier sélectionné
+    QString fileName = item->text();
+
+    // Construit le chemin complet du fichier .ts à partir du dossier sélectionné
+    QString directoryPath = ui->lineEditTsFilesPath->text();
+    QString filePath = QDir(directoryPath).filePath(fileName);
+
+    // Charge et traite le fichier .ts
+    if (!filePath.isEmpty()) {
+        load(filePath);
+        manageLanguage();
+
+        // Connecte le signal pour mettre à jour les traductions générées
+        connect(&translator, &TSTranslationReader::generatedTranslationChanged, this, [=](const QString &context, const QString &source, const QString &newTranslation) {
+            int rowCount = ui->tableWidgetTsValues->rowCount();
+            for (int row = 0; row < rowCount; ++row) {
+                QTableWidgetItem *sourceItem = ui->tableWidgetTsValues->item(row, 0);
+                QTableWidgetItem *contextItem = ui->tableWidgetTsValues->item(row, 3);
+
+                // Vérifie que les éléments existent et que la source et le contexte correspondent
+                if (sourceItem && contextItem) {
+                    QString sourceText = sourceItem->text();
+                    QString contextText = contextItem->text();
+
+                    // Met à jour translationItem si la source et le contexte correspondent
+                    if (sourceText == source && contextText == context) {
+
+                        QTableWidgetItem *generatedTranslationItem = ui->tableWidgetTsValues->item(row, 2);
+                        if (!generatedTranslationItem) {
+                            generatedTranslationItem = new QTableWidgetItem();
+                            ui->tableWidgetTsValues->setItem(row, 2, generatedTranslationItem);
+                        }
+                        generatedTranslationItem->setText(newTranslation);
+                        QTableWidgetItem *expectedTranslationItem = ui->tableWidgetTsValues->item(row, 1);
+
+                        if (expectedTranslationItem && !expectedTranslationItem->text().isEmpty() && expectedTranslationItem->text() != newTranslation) {
+                            // Appliquer un fond orange à l'item pour indiquer la différence
+                            ui->tableWidgetTsValues->item(row, 2)->setBackground(QColor(255, 165, 0));
+                        }
+                        break;
+                    }
+                }
+            }
+        });
+    }
+}
+
+void MainWindow::manageLanguage(){
+    if(translator.language() != ""){
+        ui->comboBoxLanguage->setCurrentText(translator.language());
+    } else {
+        ui->comboBoxLanguage->setCurrentIndex(-1);
+    }
+
+}
