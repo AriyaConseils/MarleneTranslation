@@ -16,16 +16,23 @@ for /f "tokens=1,2,3 delims=." %%a in ("%LAST_TAG:v=%") do (
     set "PATCH=%%c"
 )
 
-:: Incrémente le numéro de version PATCH
+:: Boucle pour trouver un tag unique
+:find_unique_tag
 set /a PATCH+=1
 set "NEW_TAG=v%MAJOR%.%MINOR%.%PATCH%"
 
-:: Affiche la nouvelle version pour confirmation
-echo Last tag: %LAST_TAG%
+:: Vérifie si le tag existe déjà
+git rev-parse %NEW_TAG% >nul 2>&1
+if not errorlevel 1 (
+    goto find_unique_tag
+)
+
+:: Affiche la dernière version et la nouvelle version pour confirmation
 echo New tag: %NEW_TAG%
 
-:: Créé un nouveau tag et le pousse
+:: Crée un nouveau tag et le pousse
 git tag -a %NEW_TAG% -m "Release version %NEW_TAG%"
 git push origin %NEW_TAG%
 
 endlocal
+pause

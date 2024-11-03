@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ProjectList</class>
+ <widget class="QWidget" name="ProjectList">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="QListWidget" name="listWidget">
+     <property name="styleSheet">
+      <string notr="true">QListWidget {
+    background-color: transparent; /* Rend le fond du QListWidget transparent */
+    border: none; /* Supprime la bordure pour un look plus épuré */
+}
+QListWidget:selected:focus, QListWidget::item:focus {
+    outline: none; /* Supprime les bordures pointillées autour de l'élément sélectionné */
+}
+
+QListWidget::item {
+    /* Styles pour les items, ajustez selon vos besoins */
+    color: black; /* Couleur du texte des items */
+}
+QListWidget::item:selected {
+    background-color: transparent; /* Empêche la coloration de fond de l'élément sélectionné */
+    color: black; /* Ajustez selon vos besoins */
+}
+
+QListWidget::item:selected:focus, QListWidget::item:focus {
+    outline: none; /* Supprime les bordures pointillées autour de l'élément sélectionné */
+}
+
+QListWidget::item:hover {
+    background-color: rgba(200, 200, 255, 75); 
+}
+
+QHeaderView::section {
+    background-color: transparent; /* Rend le fond de l'en-tête transparent */
+    border: none; /* Supprime les bordures de l'en-tête */
+}</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

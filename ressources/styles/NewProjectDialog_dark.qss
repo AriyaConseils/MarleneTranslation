@@ -1,0 +1,112 @@
+/* QToolButton */
+QToolButton {
+    border: 1px solid #555555; /* Bordure gris foncé */
+    background-color: transparent; /* Fond transparent */
+    border-radius: 5px; /* Coins arrondis à 5px */
+    color: #ff8c00; /* Texte orange */
+    padding: 5px 10px; /* Espacement interne */
+}
+
+QToolButton:hover {
+    background-color: #333333; /* Fond gris foncé lors du survol */
+    color: #ff8c00; /* Texte orange lors du survol */
+    border: 1px solid #ff8c00; /* Bordure orange */
+}
+
+QToolButton:checked {
+    background-color: #222222; /* Fond gris très foncé lorsqu'il est activé */
+    border: 2px solid #ff8c00; /* Bordure orange lorsqu'il est activé */
+    color: #ff8c00; /* Texte orange lorsqu'il est activé */
+}
+
+QToolButton:checked:hover {
+    background-color: rgba(255, 140, 0, 0.1); /* Fond orange très léger lors du survol en mode activé */
+    color: #ff8c00; /* Texte orange lors du survol en mode activé */
+}
+
+QToolButton:disabled {
+    background-color: transparent; /* Fond transparent lorsqu'il est désactivé */
+    color: #666666; /* Texte gris clair lorsqu'il est désactivé */
+    border: 1px solid #666666; /* Bordure gris clair */
+}
+
+/* QPushButton for Ok Button */
+QPushButton#pushButtonOk {
+    background-color: #ff8c00; /* Couleur de fond orange */
+    color: white; /* Écriture blanche */
+    border: 1px solid #ff8c00; /* Bordure orange */
+    border-radius: 5px; /* Coins arrondis */
+    padding: 5px 10px; /* Espacement interne */
+}
+
+QPushButton#pushButtonOk:hover {
+    background-color: #e67e00; /* Orange plus foncé lors du survol */
+    border: 1px solid #e67e00; /* Bordure assortie */
+}
+
+QPushButton#pushButtonOk:pressed {
+    background-color: #cc7000; /* Orange encore plus foncé lorsqu'il est pressé */
+    border: 1px solid #cc7000; /* Bordure assortie */
+}
+
+QPushButton#pushButtonOk:disabled {
+    background-color: #cccccc; /* Fond gris lorsque désactivé */
+    color: #666666; /* Écriture grise */
+    border: 1px solid #cccccc; /* Bordure assortie */
+}
+
+/* QPushButton (Standard and Cancel Button) */
+QPushButton {
+    background-color: transparent; /* Fond transparent */
+    color: #ff8c00; /* Texte orange */
+    border: 1px solid #999999; /* Bordure grise */
+    border-radius: 5px; /* Coins arrondis à 5px */
+    padding: 5px 10px; /* Espacement interne */
+}
+
+QPushButton:hover {
+    background-color: rgba(255, 140, 0, 0.2); /* Fond orange opaque lors du survol */
+    color: white; /* Texte blanc lors du survol pour plus de contraste */
+    border: 1px solid #ff8c00; /* Bordure orange */
+}
+
+QPushButton:pressed {
+    background-color: #ff8c00; /* Fond orange lorsqu'il est pressé */
+    color: white; /* Texte blanc lorsqu'il est pressé */
+    border: 1px solid #ff8c00; /* Bordure orange */
+}
+
+QPushButton:disabled {
+    background-color: transparent; /* Fond transparent lorsqu'il est désactivé */
+    color: #666666; /* Texte gris clair lorsqu'il est désactivé */
+    border: 1px solid #666666; /* Bordure gris clair */
+}
+
+/* QLabel */
+QLabel {
+    color: white; /* Texte blanc */
+    border-radius: 5px; /* Coins arrondis à 5px */
+}
+
+/* QLineEdit */
+QLineEdit {
+    background-color: #333333; /* Fond gris foncé */
+    color: white; /* Texte blanc */
+    border: 1px solid #555555; /* Bordure gris foncé */
+    padding: 5px; /* Espacement interne */
+    border-radius: 5px; /* Coins arrondis à 5px */
+}
+
+QLineEdit:disabled {
+    background-color: #222222; /* Fond gris très foncé lorsqu'il est désactivé */
+    color: #666666; /* Texte gris clair lorsqu'il est désactivé */
+    border: 1px solid #444444; /* Bordure gris foncé */
+}
+
+/* QWidget */
+QWidget {
+    background-color: #1e1e1e; /* Fond gris foncé */
+    color: white; /* Texte blanc */
+    border-radius: 5px; /* Coins arrondis à 5px */
+}
+

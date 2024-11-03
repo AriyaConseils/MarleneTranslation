@@ -1,0 +1,37 @@
+/* QPushButton for Ok Button */
+QPushButton#pushButtonOk {
+    background-color: #ff8c00; /* Couleur de fond orange */
+    color: white; /* Écriture blanche */
+    border: 1px solid #ff8c00; /* Bordure orange */
+    border-radius: 5px; /* Coins arrondis */
+    padding: 5px 10px; /* Espacement interne */
+}
+
+QPushButton#pushButtonOk:hover {
+    background-color: #e67e00; /* Orange plus foncé lors du survol */
+    border: 1px solid #e67e00; /* Bordure assortie */
+}
+
+QPushButton#pushButtonOk:pressed {
+    background-color: #cc7000; /* Orange encore plus foncé lorsqu'il est pressé */
+    border: 1px solid #cc7000; /* Bordure assortie */
+}
+
+QPushButton#pushButtonOk:disabled {
+    background-color: #cccccc; /* Fond gris lorsque désactivé */
+    color: #666666; /* Écriture grise */
+    border: 1px solid #cccccc; /* Bordure assortie */
+}
+
+/* QLabel */
+QLabel {
+    color: white; /* Texte blanc */
+    border-radius: 5px; /* Coins arrondis à 5px */
+}
+
+/* QWidget */
+QWidget {
+    background-color: #1e1e1e; /* Fond gris foncé */
+    color: white; /* Texte blanc */
+    border-radius: 5px; /* Coins arrondis à 5px */
+}

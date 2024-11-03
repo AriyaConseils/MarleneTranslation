@@ -31,15 +31,20 @@ public:
     void mergeAll();
     // Méthode pour sauvegarder les traductions dans un fichier TS
     bool save(const QString &filePath) const;
-    void setLanguage(const QString &language);
 
     QString language() const;
 
     QString languageCode() const;
 
     QStringList languageNames() const;
-
+    static QStringList availableLanguages();
     void setLanguageCode(const QString &newLanguageCode);
+
+    bool isEmpty() const;
+    bool isFullyTranslated() const;
+
+public slots:
+    void setLanguage(const QString &language);
 
 signals:
     void generatedTranslationChanged(const QString &, const QString &, const QString &);

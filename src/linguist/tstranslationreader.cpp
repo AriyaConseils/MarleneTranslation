@@ -4,7 +4,7 @@
 #include <QXmlStreamWriter>
 #include <QDebug>
 #include "chatgptclient.h"
-#include "src/FileAggregator.h"
+#include "FileAggregator.h"
 #include <QEventLoop>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -463,6 +463,12 @@ QStringList TSTranslationReader::languageNames() const
     return m_languageMap.keys();
 }
 
+QStringList TSTranslationReader::availableLanguages()
+{
+    return TSTranslationReader().languageNames();
+}
+
+
 void TSTranslationReader::setLanguageCode(const QString &newLanguageCode) {
     // Extraction du code de base de la langue (par exemple "en" de "en_US")
     QString basicLanguageCode = newLanguageCode.split("_").first();
@@ -479,3 +485,32 @@ void TSTranslationReader::setLanguageCode(const QString &newLanguageCode) {
     // Stockage du code complet
     m_languageCode = newLanguageCode;
 }
+
+bool TSTranslationReader::isEmpty() const {
+    // Parcourir chaque contexte et chaque message
+    for (const auto &messages : translations) {
+        for (const auto &message : messages) {
+            // Si un message a une traduction, alors ce n'est pas vide
+            if (!message.translation.isEmpty()) {
+                return false;
+            }
+        }
+    }
+    // Si toutes les traductions sont vides, retourner vrai
+    return true;
+}
+
+bool TSTranslationReader::isFullyTranslated() const {
+    // Parcourir chaque contexte et chaque message
+    for (const auto &messages : translations) {
+        for (const auto &message : messages) {
+            // Si un message n'a pas de traduction, alors ce n'est pas complètement traduit
+            if (message.translation.isEmpty()) {
+                return false;
+            }
+        }
+    }
+    // Si toutes les traductions sont remplies, retourner vrai
+    return true;
+}
+

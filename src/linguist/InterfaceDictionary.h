@@ -65,6 +65,30 @@ public:
         return awtNames;
     }
 
+    static QString interfaceFromName(const QString &name, const QString &directoryPath = "configurations/interfaces")
+      {
+          if (name == "GptInterface") {
+              // Cas particulier pour l'interface "GptInterface" dans les ressources
+              return ":/configurations/ressources/TraductionInterface.awt";
+          }
+
+          QDir dir(directoryPath);
+          if (!dir.exists()) {
+              qDebug() << "Error: Directory does not exist -" << directoryPath;
+              return QString();
+          }
+
+          QString filename = name + ".awt";
+          QFileInfo fileInfo(dir.filePath(filename));
+
+          if (fileInfo.exists() && fileInfo.isFile()) {
+              // Retourner le chemin relatif
+              return dir.relativeFilePath(fileInfo.absoluteFilePath());
+          } else {
+              qDebug() << "Error: File not found for interface -" << name;
+              return QString();
+          }
+      }
 private:
     QString m_directoryPath;
 };

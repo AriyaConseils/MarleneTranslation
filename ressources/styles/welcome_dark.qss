@@ -1,0 +1,33 @@
+QLabel {
+    background-color: transparent; /* Couleur de fond transparente */
+    color: white; /* Couleur du texte en blanc pour un bon contraste sur un fond sombre */
+}
+
+QPushButton {
+    border: 1px solid #444444; /* Une légère bordure gris foncé pour le bouton */
+    background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
+                                      stop:0.8 #333333, stop:1 #ff8c00); /* Dégradé de gris foncé à orange */
+    color: white; /* Couleur du texte en blanc */
+    padding: 5px; /* Espacement interne */
+    text-align: center; /* Alignement du texte */
+    font: bold; /* Style de police en gras */
+    border-radius: 5px; /* Coins arrondis */
+    min-height: 24px;
+}
+QPushButton:hover {
+    background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
+                                      stop:0.9 #555555, stop:1 #ff8c00); /* Dégradé légèrement plus foncé pour le survol */
+}
+QPushButton:pressed {
+    background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
+                                      stop:0.9 #666666, stop:1 #ff8c00); /* Dégradé encore plus foncé pour l'état pressé */
+}
+QPushButton:checked {
+    border: 1px solid #ff8c00; /* Une bordure orange */
+    background-color: #ff8c00; /* Couleur de fond orange */
+    color: white; /* Couleur du texte en blanc */
+    padding: 5px; /* Espacement interne */
+    text-align: center; /* Alignement du texte */
+    font: bold; /* Style de police en gras */
+    border-radius: 5px; /* Coins arrondis */
+}

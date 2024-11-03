@@ -2,7 +2,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QDebug>
-#include "InterfaceDictionary.h"
+#include "src/linguist/InterfaceDictionary.h"
 
 int main(int argc, char *argv[])
 {
@@ -91,13 +91,14 @@ int main(int argc, char *argv[])
         qDebug() << "Full Update:" << fullUpdate;
         //--source C:/Users/admate/Desktop/fileTranslation_en.ts --lang italian --fullUpdate --destination C:/Users/admate/Desktop/fileTranslation_it.ts
 
-        if(w.load(source)){
-            if(interfaceName != ""){
-                w.setInterface(interfaceName);
-            }
-            w.updateTranslation(lang, fullUpdate);
-            w.save(destination);
-        }
+//        if(w.load(source)){
+//            if(interfaceName != ""){
+//                w.setInterface(interfaceName);
+//            }
+//            // reconnecter ca avec la nouvelle class LinguistpageController
+//            w.updateTranslation(lang, fullUpdate);
+//            w.save(destination);
+//        }
         // Fin du mode CLI
         return 0;
     }
