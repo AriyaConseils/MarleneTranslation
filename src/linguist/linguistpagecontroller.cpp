@@ -10,7 +10,7 @@ LinguistpageController::LinguistpageController(QWidget *parent) :
     ui(new Ui::LinguistpageController)
 {
     ui->setupUi(this);
-    ui->tableWidgetTsValues->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
 
     // Créer les actions du menu contextuel
@@ -26,25 +26,27 @@ LinguistpageController::LinguistpageController(QWidget *parent) :
     contextMenu->addAction(actionMergeAll);
     contextMenu->addAction(actionUpdate);
 
-    // Connecter le clic droit pour afficher le menu contextuel
-    ui->tableWidgetTsValues->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->tableWidgetTsValues, &QTableWidget::customContextMenuRequested, this, [=](const QPoint &pos) {
-        // Récupérer la ligne sélectionnée pour activer ou désactiver "Merge"
-        QTableWidgetItem *item = ui->tableWidgetTsValues->itemAt(pos);
+    ui->tableView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->tableView, &QTableView::customContextMenuRequested, this, [=](const QPoint &pos) {
+        QModelIndex index = ui->tableView->indexAt(pos);
         bool enableMerge = false;
 
-        if (item) {
-            int row = item->row();
-            QTableWidgetItem *translationItem = ui->tableWidgetTsValues->item(row, 1);
-            QTableWidgetItem *generatedTranslationItem = ui->tableWidgetTsValues->item(row, 2);
+        if (index.isValid()) {
+            int row = index.row();
 
-            // Activer "Merge" uniquement si la colonne 1 est différente de la colonne 2
-            enableMerge = (translationItem && generatedTranslationItem && translationItem->text() != generatedTranslationItem->text());
+            // Récupère les indexes pour les colonnes "Translation" et "Generated Translation"
+            QModelIndex translationIndex = m_currentModel->index(row, 1);
+            QModelIndex generatedTranslationIndex = m_currentModel->index(row, 2);
+
+            QString translationText = m_currentModel->data(translationIndex).toString();
+            QString generatedTranslationText = m_currentModel->data(generatedTranslationIndex).toString();
+
+            // Activer "Merge" uniquement si les textes sont différents
+            enableMerge = (translationText != generatedTranslationText);
         }
-        actionMerge->setEnabled(enableMerge);
 
-        // Afficher le menu contextuel à la position du clic
-        contextMenu->exec(ui->tableWidgetTsValues->viewport()->mapToGlobal(pos));
+        actionMerge->setEnabled(enableMerge);
+        contextMenu->exec(ui->tableView->viewport()->mapToGlobal(pos));
     });
 
     // Connecter les actions aux slots
@@ -55,32 +57,6 @@ LinguistpageController::LinguistpageController(QWidget *parent) :
 
     ui->comboBoxLanguage->setCurrentIndex(-1);
     connect(ui->comboBoxLanguage, &QComboBox::currentTextChanged, this, &LinguistpageController::updateLanguage);
-
-
-    // modification des traductions à la main
-    connect(ui->tableWidgetTsValues, &QTableWidget::itemChanged, this, [=](QTableWidgetItem *item) {
-        // Vérifiez si l'item modifié est dans la colonne de traduction (colonne 1)
-        if (item && item->column() == 1) {
-            int row = item->row();
-
-            // Récupère les valeurs nécessaires
-            QString newTranslation = item->text(); // Nouvelle traduction entrée par l'utilisateur
-            QTableWidgetItem *sourceItem = ui->tableWidgetTsValues->item(row, 0);
-            QTableWidgetItem *contextItem = ui->tableWidgetTsValues->item(row, 3);
-
-            // Vérifie que les items source et contexte existent
-            if (sourceItem && contextItem) {
-                QString sourceText = sourceItem->text();
-                QString contextText = contextItem->text();
-
-                // Mise à jour de la traduction dans translator
-                translator.updateTranslation(contextText, sourceText, newTranslation);
-                qDebug() << "Mise à jour de la traduction:" << newTranslation << "pour le contexte:" << contextText << "et source:" << sourceText;
-            }
-        }
-    });
-
-
 }
 
 LinguistpageController::~LinguistpageController()
@@ -91,106 +67,143 @@ LinguistpageController::~LinguistpageController()
 
 void LinguistpageController::mergeSelectedRow()
 {
-    // Récupérer la ligne actuellement sélectionnée
-    int row = ui->tableWidgetTsValues->currentRow();
-    if (row < 0) return; // Aucune ligne sélectionnée
-
-    QTableWidgetItem *translationItem = ui->tableWidgetTsValues->item(row, 1);
-    QTableWidgetItem *generatedTranslationItem = ui->tableWidgetTsValues->item(row, 2);
-
-    // Vérifier que les items existent et que la colonne 1 est différente de la colonne 2
-    if (translationItem && generatedTranslationItem && translationItem->text() != generatedTranslationItem->text()) {
-        // Mettre à jour la colonne 1 avec le texte de la colonne 2
-        translationItem->setText(generatedTranslationItem->text());
-
-        // Effacer la couleur de fond pour indiquer que la fusion a été effectuée
-        generatedTranslationItem->setBackground(Qt::NoBrush);
+    if (!m_currentModel) {
+        qDebug() << "Merge selected failed: m_currentModel = nullptr";
+        return;
     }
-    QTableWidgetItem *sourceItem = ui->tableWidgetTsValues->item(row, 0);
-    QTableWidgetItem *contextItem = ui->tableWidgetTsValues->item(row, 3);
-    if(sourceItem && contextItem){
-        translator.merge(contextItem->text(), sourceItem->text());
+
+    // Récupérer la ligne actuellement sélectionnée
+    QModelIndexList selectedIndexes = ui->tableView->selectionModel()->selectedRows();
+    if (selectedIndexes.isEmpty()) return; // Aucune ligne sélectionnée
+
+    int row = selectedIndexes.first().row(); // Première ligne sélectionnée
+
+    // Obtenir les textes de source et context
+    QModelIndex contextIndex = m_currentModel->index(row, 0);
+    QModelIndex sourceIndex = m_currentModel->index(row, 1);
+
+    QString sourceText = m_currentModel->data(sourceIndex).toString();
+    QString contextText = m_currentModel->data(contextIndex).toString();
+
+    // Appeler la fonction merge du modèle
+    if (m_currentModel->merge(contextText, sourceText)) {
+        qDebug() << "Row merged successfully for context:" << contextText << "source:" << sourceText;
+    } else {
+        qDebug() << "Merge failed: context or source not found";
     }
 }
 
 void LinguistpageController::mergeAllSelectedRows()
 {
-    QList<QTableWidgetItem *> selectedItems = ui->tableWidgetTsValues->selectedItems();
-    QSet<int> selectedRows;
+    if (!m_currentModel) {
+        qDebug() << "Merge All selected failed: m_currentModel = nullptr";
+        return;
+    }
 
-    // Extraire les indices de lignes uniques des éléments sélectionnés
-    for (QTableWidgetItem *item : selectedItems) {
-        selectedRows.insert(item->row());
+    // Récupérer les lignes sélectionnées
+    QModelIndexList selectedIndexes = ui->tableView->selectionModel()->selectedRows();
+    QSet<int> selectedRows;
+    for (const QModelIndex &index : selectedIndexes) {
+        selectedRows.insert(index.row()); // Récupère les lignes uniques
     }
 
     // Parcourir chaque ligne sélectionnée
     for (int row : selectedRows) {
-        QTableWidgetItem *translationItem = ui->tableWidgetTsValues->item(row, 1);
-        QTableWidgetItem *generatedTranslationItem = ui->tableWidgetTsValues->item(row, 2);
+        QModelIndex translationIndex = m_currentModel->index(row, 1); // Colonne 1 : Translation
+        QModelIndex generatedTranslationIndex = m_currentModel->index(row, 2); // Colonne 2 : Generated Translation
 
-        // Vérifie que les items existent et que la colonne 1 est différente de la colonne 2
-        if (translationItem && generatedTranslationItem && translationItem->text() != generatedTranslationItem->text()) {
-            // Mettre à jour la colonne 1 avec le texte de la colonne 2
-            translationItem->setText(generatedTranslationItem->text());
+        QString translationText = m_currentModel->data(translationIndex).toString();
+        QString generatedTranslationText = m_currentModel->data(generatedTranslationIndex).toString();
+
+        // Vérifier que la traduction et la traduction générée sont différentes
+        if (translationText != generatedTranslationText) {
+            // Met à jour la traduction avec la traduction générée
+            m_currentModel->setData(translationIndex, generatedTranslationText);
 
             // Effacer la couleur de fond pour indiquer que la fusion a été effectuée
-            generatedTranslationItem->setBackground(Qt::NoBrush);
-            QTableWidgetItem *sourceItem = ui->tableWidgetTsValues->item(row, 0);
-            QTableWidgetItem *contextItem = ui->tableWidgetTsValues->item(row, 3);
-            if(sourceItem && contextItem){
-                translator.merge(contextItem->text(), sourceItem->text());
-            }
+            m_currentModel->setData(generatedTranslationIndex, QVariant(), Qt::BackgroundRole);
 
+            // Obtenir les valeurs de "Source" et "Context" pour effectuer la fusion dans le modèle
+            QModelIndex contextIndex = m_currentModel->index(row, 0);
+            QModelIndex sourceIndex = m_currentModel->index(row, 1);
+
+            QString sourceText = m_currentModel->data(sourceIndex).toString();
+            QString contextText = m_currentModel->data(contextIndex).toString();
+
+            // Appeler la méthode merge du modèle pour la ligne actuelle
+            if (!m_currentModel->merge(contextText, sourceText)) {
+                qWarning() << "Merge failed for context:" << contextText << "source:" << sourceText;
+            }
         }
     }
 }
 
 void LinguistpageController::mergeAllRows()
 {
-    int rowCount = ui->tableWidgetTsValues->rowCount();
+    if (!m_currentModel) {
+        qDebug() << "Merge all failed: m_currentModel = nullptr";
+        return;
+    }
+
+    int rowCount = m_currentModel->rowCount();
 
     // Parcourir toutes les lignes pour faire la fusion
     for (int row = 0; row < rowCount; ++row) {
-        QTableWidgetItem *translationItem = ui->tableWidgetTsValues->item(row, 1);
-        QTableWidgetItem *generatedTranslationItem = ui->tableWidgetTsValues->item(row, 2);
+        QModelIndex translationIndex = m_currentModel->index(row, 1); // Colonne 1 : Translation
+        QModelIndex generatedTranslationIndex = m_currentModel->index(row, 2); // Colonne 2 : Generated Translation
 
-        // Vérifier que les items existent et que la colonne 1 est différente de la colonne 2
-        if (translationItem && generatedTranslationItem && translationItem->text() != generatedTranslationItem->text()) {
-            // Mettre à jour la colonne 1 avec le texte de la colonne 2
-            translationItem->setText(generatedTranslationItem->text());
+        QString translationText = m_currentModel->data(translationIndex).toString();
+        QString generatedTranslationText = m_currentModel->data(generatedTranslationIndex).toString();
+
+        // Vérifier que la traduction et la traduction générée sont différentes
+        if (translationText != generatedTranslationText) {
+            // Met à jour la traduction avec la traduction générée
+            m_currentModel->setData(translationIndex, generatedTranslationText);
 
             // Effacer la couleur de fond pour indiquer que la fusion a été effectuée
-            generatedTranslationItem->setBackground(Qt::NoBrush);
+            m_currentModel->setData(generatedTranslationIndex, QVariant(), Qt::BackgroundRole);
         }
     }
-    translator.mergeAll();
+
+    // Appeler la méthode de fusion de toutes les lignes dans le modèle
+    m_currentModel->mergeAll();
 }
 
 void LinguistpageController::updateSelectedRows()
 {
-    if(m_interface == ""){
+    if (m_interface.isEmpty()) {
         qDebug() << "Interface not defined!";
+        return;
     }
 
-    // Récupérer la langue sélectionnée dans la comboBox
-    QList<QTableWidgetItem *> selectedItems = ui->tableWidgetTsValues->selectedItems();
+    if (!m_currentModel) {
+        qDebug() << "Update selected failed: m_currentModel = nullptr";
+        return;
+    }
+
+    // Obtenir les lignes sélectionnées
+    QModelIndexList selectedIndexes = ui->tableView->selectionModel()->selectedRows();
     QSet<int> selectedRows;
 
     // Extraire les indices de lignes uniques des éléments sélectionnés
-    for (QTableWidgetItem *item : selectedItems) {
-        selectedRows.insert(item->row());
+    for (const QModelIndex &index : selectedIndexes) {
+        selectedRows.insert(index.row());
     }
 
     // Parcourir chaque ligne sélectionnée et demander la traduction
     for (int row : selectedRows) {
-        QTableWidgetItem *sourceItem = ui->tableWidgetTsValues->item(row, 0);
-        QTableWidgetItem *contextItem = ui->tableWidgetTsValues->item(row, 3);
+        QModelIndex contextIndex = m_currentModel->index(row, 0); // Colonne 0 : Context
+        QModelIndex sourceIndex = m_currentModel->index(row, 1); // Colonne 1 : Source
 
-        if (sourceItem && contextItem) {
-            translator.generateTranslation(m_interface, contextItem->text(), sourceItem->text());
+        QString contextText = m_currentModel->data(contextIndex).toString();
+        QString sourceText = m_currentModel->data(sourceIndex).toString();
+
+        if (!sourceText.isEmpty() && !contextText.isEmpty()) {
+            m_currentModel->generateTranslation(m_interface, contextText, sourceText);
         }
     }
 }
+
 
 void LinguistpageController::setInterfaceName(const QString &interface)
 {
@@ -199,31 +212,33 @@ void LinguistpageController::setInterfaceName(const QString &interface)
 
 void LinguistpageController::updateLanguage(const QString &arg1)
 {
-    translator.setLanguage(arg1);
+    if(m_currentModel){
+        m_currentModel->setLanguage(arg1);
+    }
 }
 
 void LinguistpageController::manageLanguage()
 {
-    if(translator.language() != ""){
-        ui->comboBoxLanguage->setCurrentText(translator.language());
+    if(m_currentModel && m_currentModel->language() != ""){
+        ui->comboBoxLanguage->setCurrentText(m_currentModel->language());
     } else {
         ui->comboBoxLanguage->setCurrentIndex(-1);
     }
 
 }
 
-void LinguistpageController::updateTranslation(const QString language, bool fullUpdate)
-{
-    if(m_interface == ""){
-        qDebug() << "Interface not defined!";
-    }
-    if(translator.language() != language){
-        translator.setLanguage(language);
-    }
-    translator.generateTranslation(m_interface, fullUpdate);
-    translator.waitForFinish();
-    translator.mergeAll();
-}
+//void LinguistpageController::updateTranslation(const QString language, bool fullUpdate)
+//{
+//    if(m_interface == ""){
+//        qDebug() << "Interface not defined!";
+//    }
+//    if(translator.language() != language){
+//        translator.setLanguage(language);
+//    }
+//    translator.generateTranslation(m_interface, fullUpdate);
+//    translator.waitForFinish();
+//    translator.mergeAll();
+//}
 
 
 void LinguistpageController::on_pushButtonUpdate_clicked()
@@ -231,9 +246,12 @@ void LinguistpageController::on_pushButtonUpdate_clicked()
     if(m_interface == ""){
         qDebug() << "Interface not defined!";
     }
-    // Récupérer la langue sélectionnée dans la comboBox
-    QString selectedLanguage = ui->comboBoxLanguage->currentText();
-    translator.generateTranslation(m_interface);
+    if(!m_currentModel){
+        qDebug() << "Update failed: m_currentModel = nullptr";
+        return;
+    }
+
+    m_currentModel->generateTranslation(m_interface);
 }
 
 void LinguistpageController::updateFilesList()
@@ -243,7 +261,8 @@ void LinguistpageController::updateFilesList()
 
     // Vide la liste actuelle
     ui->listWidgetTsList->clear();
-
+    clearAndDeleteModels();
+    manageLanguage();
     // Ajoute chaque fichier .ts avec le drapeau correspondant dans le ListWidget
     for (const QString &fileName : tsFiles) {
         // Extraction du code de langue depuis le nom du fichier
@@ -252,23 +271,33 @@ void LinguistpageController::updateFilesList()
         // Récupère l'icône du drapeau pour ce code de langue
         QIcon flagIcon = FlagsPickerBox::getFlagIcon(languageCode);
 
-        // Crée un item pour le fichier .ts
+        // Crée un item pour le fichier .ts et l'ajouter
         QListWidgetItem *item = new QListWidgetItem(flagIcon, fileName);
+        ui->listWidgetTsList->addItem(item);
 
-        // Charge le fichier dans le `translator` pour vérifier l'état des traductions
-        translator.load(m_currentTsFilesDirectory + "/" + fileName);
+        // Charge un nouveau model de traduction
+        TSTranslationModel *currentModel = new TSTranslationModel(nullptr);
+        currentModel->load(m_currentTsFilesDirectory + "/" + fileName);
+        currentModel->setLanguage(FlagsPickerBox::languageFromCodeLanguage(languageCode));
+        connect(currentModel, &TSTranslationModel::durtyChanged, this, [item](bool durty){
+            if(durty){
+                if(!item->text().contains("*")){
+                    item->setText(item->text() + "*");
+                }
+            } else {
+                item->setText(item->text().remove("*"));
+            }
+        });
 
+        m_modelTsFileDictionary.insert(m_currentTsFilesDirectory + "/" + fileName, currentModel);
         // Détermine la couleur de fond semi-transparente de l'item
-        if (translator.isEmpty()) {
+        if (currentModel->isEmpty()) {
             item->setBackground(QBrush(QColor(255, 0, 0, 30)));   // Rouge transparent
-        } else if (translator.isFullyTranslated()) {
+        } else if (currentModel->isFullyTranslated()) {
             item->setBackground(QBrush(QColor(0, 255, 0, 30)));   // Vert transparent
         } else {
             item->setBackground(QBrush(QColor(255, 165, 0, 30))); // Orange transparent
         }
-
-        // Ajoute l'item dans le ListWidget
-        ui->listWidgetTsList->addItem(item);
     }
 }
 
@@ -281,42 +310,8 @@ void LinguistpageController::setTsFilesDirectory(const QString &path)
     updateFilesList();
 }
 
-void LinguistpageController::populateTableWidget(const QMap<QString, QVector<TranslationMessage>> &translations)
-{
-    // Vide le tableau existant
-    ui->tableWidgetTsValues->clearContents();
-    ui->tableWidgetTsValues->setRowCount(0);
 
-    // Parcourt chaque contexte et chaque message pour remplir le tableau
-    int row = 0;
-    for (const auto &context : translations.keys()) {
-        const auto &messages = translations[context];
 
-        for (const auto &message : messages) {
-            // Ajoute une nouvelle ligne
-            ui->tableWidgetTsValues->insertRow(row);
-
-            // Crée les items pour le message source, traduction, et contexte
-            QTableWidgetItem *sourceItem = new QTableWidgetItem(message.source);
-            QTableWidgetItem *translationItem = new QTableWidgetItem(message.translation);
-            QTableWidgetItem *generatedTranslationItem = new QTableWidgetItem(message.generatedTranslation);
-            QTableWidgetItem *contextItem = new QTableWidgetItem(context);
-
-            // Rendre les cellules source et contexte en lecture seule
-            sourceItem->setFlags(sourceItem->flags() & ~Qt::ItemIsEditable);
-            generatedTranslationItem->setFlags(generatedTranslationItem->flags() & ~Qt::ItemIsEditable);
-            contextItem->setFlags(contextItem->flags() & ~Qt::ItemIsEditable);
-
-            // Ajoute les items dans le tableau
-            ui->tableWidgetTsValues->setItem(row, 0, sourceItem);
-            ui->tableWidgetTsValues->setItem(row, 1, translationItem);
-            ui->tableWidgetTsValues->setItem(row, 2, generatedTranslationItem);
-            ui->tableWidgetTsValues->setItem(row, 3, contextItem);
-
-            row++;
-        }
-    }
-}
 
 
 
@@ -324,7 +319,7 @@ void LinguistpageController::populateTableWidget(const QMap<QString, QVector<Tra
 
 
 void LinguistpageController::on_pushButtonSaveAs_clicked()
-{
+{   
     // Ouvre une boîte de dialogue pour choisir un fichier .ts
     QString filePath = QFileDialog::getSaveFileName(this, tr("Enregistrer sous"), QString(), tr("Fichiers TS (*.ts)"));
 
@@ -342,31 +337,26 @@ void LinguistpageController::on_pushButtonSaveAs_clicked()
     save(filePath);
 }
 
+
 void LinguistpageController::save(const QString &filePath)
 {
+    if(!m_currentModel){
+        qDebug() << "Save failed: m_currentModel = nullptr";
+        return;
+    }
+
     if (filePath.isEmpty()) {
         qWarning() << "Aucun fichier sélectionné pour la sauvegarde.";
         return;
     }
 
-    // Sauvegarde des traductions mises à jour dans le fichier .ts
-    if (translator.save(filePath)) {
+    if (m_currentModel->save(filePath)){
         qDebug() << "Sauvegarde réussie dans" << filePath;
     } else {
         qWarning() << "Erreur lors de la sauvegarde du fichier TS: " << filePath;
     }
 }
 
-bool LinguistpageController::load(const QString &filePath)
-{
-    if (translator.load(filePath)) {
-        populateTableWidget(translator.getTranslations());
-    } else {
-        qWarning() << "Erreur de chargement du fichier TS.";
-        return false;
-    }
-    return true;
-}
 
 void LinguistpageController::on_pushButtonSave_clicked()
 {
@@ -374,7 +364,7 @@ void LinguistpageController::on_pushButtonSave_clicked()
 
     if (!m_currentTsFilesDirectory.isEmpty() && !selectedItems.isEmpty()) {
         // Récupère le premier élément sélectionné
-        QString fileName = selectedItems.first()->text();
+        QString fileName = selectedItems.first()->text().remove("*");
 
         // Construit le chemin complet
         QString fullPath = m_currentTsFilesDirectory + "/" + fileName;
@@ -400,43 +390,32 @@ void LinguistpageController::on_listWidgetTsList_itemSelectionChanged()
     qDebug() << "on_listWidgetTsList_selectionChanged " << item;
 
     // Récupère le nom du fichier sélectionné
-    QString fileName = item->text();
+    QString fileName = item->text().remove("*");
 
     // Construit le chemin complet du fichier .ts à partir du dossier sélectionné
     QString filePath = QDir(m_currentTsFilesDirectory).filePath(fileName);
 
-    // Charge et traite le fichier .ts
+    // Change de model
     if (!filePath.isEmpty()) {
-        load(filePath);
+        m_currentModel = m_modelTsFileDictionary.value(filePath);
+        ui->tableView->setModel(m_currentModel);
         manageLanguage();
-
-        // Connecte le signal pour mettre à jour les traductions générées
-        connect(&translator, &TSTranslationReader::generatedTranslationChanged, this, [=](const QString &context, const QString &source, const QString &newTranslation) {
-            int rowCount = ui->tableWidgetTsValues->rowCount();
-            for (int row = 0; row < rowCount; ++row) {
-                QTableWidgetItem *sourceItem = ui->tableWidgetTsValues->item(row, 0);
-                QTableWidgetItem *contextItem = ui->tableWidgetTsValues->item(row, 3);
-
-                // Vérifie que les éléments existent et que la source et le contexte correspondent
-                if (sourceItem && contextItem) {
-                    QString sourceText = sourceItem->text();
-                    QString contextText = contextItem->text();
-
-                    // Met à jour translationItem si la source et le contexte correspondent
-                    if (sourceText == source && contextText == context) {
-
-                        QTableWidgetItem *generatedTranslationItem = ui->tableWidgetTsValues->item(row, 2);
-                        generatedTranslationItem->setText(newTranslation);
-                        QTableWidgetItem *expectedTranslationItem = ui->tableWidgetTsValues->item(row, 1);
-
-                        if (expectedTranslationItem && !expectedTranslationItem->text().isEmpty() && expectedTranslationItem->text() != newTranslation) {
-                            // Appliquer un fond orange à l'item pour indiquer la différence
-                            ui->tableWidgetTsValues->item(row, 2)->setBackground(QColor(255, 165, 0));
-                        }
-                        break;
-                    }
-                }
-            }
-        });
     }
+}
+
+void LinguistpageController::clearAndDeleteModels()
+{
+    // S'assurer que le QTableView n'a pas de modèle actif
+    ui->tableView->setModel(nullptr);
+
+    // Parcourir et supprimer chaque modèle dans le dictionnaire
+    for (auto model : m_modelTsFileDictionary) {
+        delete model;
+    }
+
+    // Vider le dictionnaire
+    m_modelTsFileDictionary.clear();
+
+    // Réinitialiser le modèle actuel à nullptr pour éviter tout accès invalidé
+    m_currentModel = nullptr;
 }

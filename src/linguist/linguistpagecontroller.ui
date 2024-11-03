@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
-    <height>405</height>
+    <width>829</width>
+    <height>447</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,42 +23,19 @@
      <widget class="QWidget" name="widget_2" native="true">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="FlagsPickerBox" name="comboBoxLanguage"/>
+        <widget class="FlagsPickerBox" name="comboBoxLanguage">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+        </widget>
        </item>
        <item>
-        <widget class="QTableWidget" name="tableWidgetTsValues">
-         <property name="selectionMode">
-          <enum>QAbstractItemView::ExtendedSelection</enum>
-         </property>
+        <widget class="QTableView" name="tableView">
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectRows</enum>
          </property>
-         <property name="sortingEnabled">
-          <bool>true</bool>
-         </property>
-         <property name="columnCount">
-          <number>4</number>
-         </property>
-         <column>
-          <property name="text">
-           <string>source</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>translation</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>new translation</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>context</string>
-          </property>
-         </column>
         </widget>
        </item>
        <item>

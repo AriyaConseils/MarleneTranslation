@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "linguist/TSTranslationReader.h"
 #include <QListWidgetItem>
 #include "lupdate/translationextractor.h"
 

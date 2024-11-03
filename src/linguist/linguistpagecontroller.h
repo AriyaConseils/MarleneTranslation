@@ -2,7 +2,7 @@
 #define LINGUISTPAGECONTROLLER_H
 
 #include <QWidget>
-#include "TSTranslationReader.h"
+#include "translationtablemodel.h"
 
 namespace Ui {
 class LinguistpageController;
@@ -15,7 +15,7 @@ class LinguistpageController : public QWidget
 public:
     explicit LinguistpageController(QWidget *parent = nullptr);
     ~LinguistpageController();
-    void updateTranslation(const QString language, bool fullUpdate);
+//    void updateTranslation(const QString language, bool fullUpdate);
 
 public slots:
     void setInterfaceName(const QString &interface);
@@ -36,16 +36,16 @@ private slots:
 
 
 private:
-    void populateTableWidget(const QMap<QString, QVector<TranslationMessage>> &translations);
     void manageLanguage();
     void save(const QString &filePath);
-    bool load(const QString &filePath);
+    void clearAndDeleteModels();
 
 private:
     Ui::LinguistpageController *ui;
-    TSTranslationReader translator;
     QString m_interface;
     QString m_currentTsFilesDirectory;
+    QMap<QString, TSTranslationModel *> m_modelTsFileDictionary;
+    TSTranslationModel *m_currentModel = nullptr;
 
 };
 

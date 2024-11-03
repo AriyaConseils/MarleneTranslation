@@ -1,6 +1,5 @@
 #include "lupdatepagecontroller.h"
 #include "ui_lupdatepagecontroller.h"
-#include "../linguist/tstranslationreader.h"
 #include <QFileInfo>
 
 

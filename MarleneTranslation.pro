@@ -16,8 +16,8 @@ SOURCES += \
     src/AcceuilPanel/welcomepagecontroller.cpp \
     src/interfacemanager.cpp \
     src/linguist/linguistpagecontroller.cpp \
-    src/linguist/tstranslationreader.cpp \
     src/linguist/chatgptclient.cpp \
+    src/linguist/translationtablemodel.cpp \
     src/lupdate/cppfileparser.cpp \
     src/lupdate/lupdatepagecontroller.cpp \
     src/lupdate/projectvue.cpp \
@@ -34,10 +34,10 @@ HEADERS += \
     src/AcceuilPanel/vues/projectlist.h \
     src/AcceuilPanel/welcomepagecontroller.h \
     src/linguist/widgets/FlagsPickerBox.h \
+    src/linguist/translationtablemodel.h \
     src/tools/FileAggregator.h \
     src/interfacemanager.h \
     src/linguist/linguistpagecontroller.h \
-    src/linguist/tstranslationreader.h \
     src/linguist/chatgptclient.h \
     src/linguist/InterfaceDictionary.h \
     src/lupdate/cppfileparser.h \

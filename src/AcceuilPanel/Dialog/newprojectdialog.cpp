@@ -1,6 +1,5 @@
 #include "newprojectdialog.h"
 #include "ui_newprojectdialog.h"
-#include "../../linguist/tstranslationreader.h"
 
 NewProjectDialog::NewProjectDialog(QWidget *parent) :
     QDialog(parent),
