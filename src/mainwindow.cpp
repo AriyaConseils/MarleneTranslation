@@ -47,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->widgetWelcomePage, &WelcomePageController::openProject, ui->widgetLupadatePage, &LupdatePageController::loadProject);
     connect(ui->widgetLupadatePage, &LupdatePageController::tsDirectoryChanged, ui->widgetLinguistPage, &LinguistpageController::setTsFilesDirectory);
     connect(ui->widgetLupadatePage, &LupdatePageController::tsFilesUpdated, ui->widgetLinguistPage, &LinguistpageController::updateFilesList);
-
+    connect(ui->widgetWelcomePage, &WelcomePageController::openProject, ui->widgetLReleasePage, &LReleasePageControler::loadProject);
 }
 
 MainWindow::~MainWindow()
@@ -64,16 +64,29 @@ void MainWindow::setInterface(const QString interface)
 
 
 
-//bool MainWindow::load(const QString &filePath)
-//{
-//    if (translator.load(filePath)) {
-//        populateTableWidget(translator.getTranslations());
-//    } else {
-//        qWarning() << "Erreur de chargement du fichier TS.";
-//        return false;
-//    }
-//    return true;
-//}
+bool MainWindow::load(const QString &filePath)
+{
+    // Vérifie si le fichier existe
+    if (!QFile::exists(filePath)) {
+        qWarning() << "Le fichier n'existe pas :" << filePath;
+        return false;
+    }
+    emit ui->widgetWelcomePage->openProject(filePath);
+
+    return true;
+}
+
+LReleasePageControler *MainWindow::getLRelease(){
+    return ui->widgetLReleasePage;
+}
+
+LupdatePageController *MainWindow::getLUpdate(){
+    return ui->widgetLupadatePage;
+}
+
+LinguistpageController *MainWindow::getLInguist(){
+    return ui->widgetLinguistPage;
+}
 
 //void MainWindow::save(const QString &filePath)
 //{

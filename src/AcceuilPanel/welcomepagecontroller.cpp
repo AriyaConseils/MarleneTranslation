@@ -73,7 +73,7 @@ void WelcomePageController::on_pushButtonNewProjet_clicked()
 {
     NewProjectDialog newProject;
     if(newProject.exec() == QDialog::Accepted){
-        m_projetsWidget->addOpenedProject(newProject.getProjectPath());
+        this->addOpenedProject(newProject.getProjectPath());
     }
 }
 

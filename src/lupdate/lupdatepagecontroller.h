@@ -15,6 +15,7 @@ class LupdatePageController : public QWidget
 public:
     explicit LupdatePageController(QWidget *parent = nullptr);
     ~LupdatePageController();
+    void createFiles();
 
 public slots:
     void loadProject(const QString &path);

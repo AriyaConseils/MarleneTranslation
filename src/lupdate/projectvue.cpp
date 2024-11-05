@@ -15,7 +15,16 @@ ProjectVue::ProjectVue(QWidget *parent) :
     ui(new Ui::ProjectVue)
 {
     ui->setupUi(this);
+    setMode(LUpdateView);
+
     connect(ui->lineEditProjectName, &QLineEdit::textChanged, this, &ProjectVue::validateProjectName);
+
+    connect(ui->checkBoxExternalCompilator, &QCheckBox::checkStateChanged, this, [this](Qt::CheckState){
+        ui->lineEditExternalCompilator->setEnabled(ui->checkBoxExternalCompilator->isChecked());
+        ui->lineEditCompilationArguments->setEnabled(ui->checkBoxExternalCompilator->isChecked());
+        ui->toolButtonExternalCompilator->setEnabled(ui->checkBoxExternalCompilator->isChecked());
+        save();
+    });
 
     // Utilise la liste des langues disponibles à partir de FlagsPickerBox
     foreach (const QString &languageName, FlagsPickerBox::availableLanguages()) {
@@ -35,13 +44,35 @@ ProjectVue::ProjectVue(QWidget *parent) :
     }
 }
 
-
+//${sourceDir} -qm ${sourceName}
 
 ProjectVue::~ProjectVue()
 {
     delete ui;
 }
 
+void ProjectVue::setMode(ModeView type)
+{
+    if(type == FullView){
+        ui->widgetProjectName->setVisible(true);
+        ui->widgetSourceBase->setVisible(true);
+        ui->listWidgetLanguage->setVisible(true);
+        ui->widgetCompilationDirectory->setVisible(true);
+        ui->widgetExternalCompilator->setVisible(true);
+    } else if(type == LUpdateView){
+        ui->widgetProjectName->setVisible(true);
+        ui->widgetSourceBase->setVisible(true);
+        ui->listWidgetLanguage->setVisible(true);
+        ui->widgetCompilationDirectory->setVisible(false);
+        ui->widgetExternalCompilator->setVisible(false);
+    } else if(type == LReleaseView){
+        ui->widgetProjectName->setVisible(true);
+        ui->widgetSourceBase->setVisible(false);
+        ui->listWidgetLanguage->setVisible(false);
+        ui->widgetCompilationDirectory->setVisible(true);
+        ui->widgetExternalCompilator->setVisible(true);
+    }
+}
 
 QStringList ProjectVue::getSelectedLanguages() const
 {
@@ -76,6 +107,10 @@ void ProjectVue::save()
     QJsonObject projectJson;
     projectJson["project_name"] = projectName;
     projectJson["ts_files_path"] = getTsFilesPath();
+    projectJson["compilation_directory"] = ui->lineEditCompilationDirectory->text(); // Nouvelle ligne pour Compilation Directory
+    projectJson["external_compilator_path"] = ui->lineEditExternalCompilator->text(); // Nouvelle ligne pour External Compilator
+    projectJson["use_external_compilator"] = ui->checkBoxExternalCompilator->isChecked(); // Nouvelle ligne pour état de la checkbox
+    projectJson["use_external_compilator_cmd"] = ui->lineEditCompilationArguments->text();
 
     // Ajouter la liste des langues sélectionnées
     QJsonArray languagesArray;
@@ -95,7 +130,7 @@ void ProjectVue::save()
     file.write(jsonDoc.toJson());
     file.close();
 
-    QMessageBox::information(this, "Save Successful", "Project saved successfully.");
+//    QMessageBox::information(this, "Save Successful", "Project saved successfully.");
 }
 
 void ProjectVue::loadProject(const QString &path)
@@ -125,6 +160,8 @@ void ProjectVue::loadProject(const QString &path)
     ui->lineEditSourceCodeBase->setText(sourceCodeBasePath);
 
     ui->lineEditTsFilesPath->setText(projectJson["ts_files_path"].toString());
+    ui->lineEditCompilationDirectory->setText(projectJson["compilation_directory"].toString()); // Charger Compilation Directory
+    ui->lineEditExternalCompilator->setText(projectJson["external_compilator_path"].toString()); // Charger External Compilator
 
     // Charger les langues sélectionnées
     QJsonArray languagesArray = projectJson["languages"].toArray();
@@ -138,8 +175,12 @@ void ProjectVue::loadProject(const QString &path)
         QListWidgetItem *item = ui->listWidgetLanguage->item(i);
         item->setCheckState(selectedLanguages.contains(item->text()) ? Qt::Checked : Qt::Unchecked);
     }
+
+    ui->checkBoxExternalCompilator->setChecked(projectJson["use_external_compilator"].toBool()); // Charger l'état de la checkbox
+    ui->lineEditCompilationArguments->setText(projectJson["use_external_compilator_cmd"].toString()); // Charger Compilation Directory
     readOnly(true);
 }
+
 
 void ProjectVue::readOnly(bool readOnly)
 {
@@ -210,3 +251,49 @@ void ProjectVue::on_toolButtonTsFilesPath_clicked()
     }
 }
 
+
+void ProjectVue::on_toolButtonCompilationDirectory_clicked()
+{
+    // Ouvre une boîte de dialogue pour sélectionner un dossier contenant des fichiers sources (cpp et ui)
+    QString directoryPath = QFileDialog::getExistingDirectory(this,
+                                                              tr("Sélectionner un dossier contenant des fichiers src"),
+                                                              QString(),
+                                                              QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+
+    // Si un dossier a été sélectionné, on le parcourt pour récupérer les fichiers .ts
+    if (!directoryPath.isEmpty()) {
+        ui->lineEditCompilationDirectory->setText(directoryPath);
+        save();
+    }
+}
+
+
+void ProjectVue::on_toolButtonExternalCompilator_clicked()
+{
+    // Ouvre une boîte de dialogue pour sélectionner un fichier exécutable (.exe)
+    QString filePath = QFileDialog::getOpenFileName(this,
+                                                    tr("Sélectionner un fichier exécutable"),
+                                                    QString(),
+                                                    tr("Executable Files (*.exe)")); // Filtre pour les fichiers .exe
+
+    if (!filePath.isEmpty()) {
+        ui->lineEditExternalCompilator->setText(filePath);
+        save();
+    }
+}
+
+
+void ProjectVue::on_lineEditCompilationArguments_textChanged(const QString &arg1)
+{
+    save();
+}
+
+bool ProjectVue::isCustomCompilation()
+{
+    return ui->checkBoxExternalCompilator->isChecked();
+}
+
+QString ProjectVue::getCmd()
+{
+    return ui->lineEditExternalCompilator->text() + " " + ui->lineEditCompilationArguments->text();
+}

@@ -3,7 +3,15 @@
 #include <QCommandLineParser>
 #include <QDebug>
 #include "src/linguist/InterfaceDictionary.h"
+#include "src/lrelease/lreleasepagecontroler.h"
+#include "src/lupdate/lupdatepagecontroller.h"
+#include "src/linguist/linguistpagecontroller.h"
 
+
+
+
+
+//--source ../testTStoQM/Swiizio.rrt --i18n --translate all --l10n
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -19,17 +27,26 @@ int main(int argc, char *argv[])
     // Définition des options CLI
     QCommandLineOption sourceOption(QStringList() << "s" << "source", "Source file path.", "source");
     QCommandLineOption langOption(QStringList() << "l" << "lang", "Language code for translation.", "lang");
-    QCommandLineOption destinationOption(QStringList() << "d" << "destination", "Destination file path.", "destination");
+    QCommandLineOption tsFileOption(QStringList() << "t" << "ts-file", "Path to the .ts translation file.", "ts-file");
     QCommandLineOption fullUpdateOption("fullUpdate", "If set, the entire language file will be regenerated. If not set, only sources that have not been translated yet will be processed.");
     QCommandLineOption interfaceOption(QStringList() << "i" << "interface", "Specify the interface file to use (.awt file).", "interface");
     QCommandLineOption listInterfacesOption("list-interfaces", "List all available interfaces (.awt files).");
 
+    // Options spécifiques pour les fonctionnalités de traduction/localisation
+    QCommandLineOption i18nOption("i18n", "Generate internationalization files.");
+    QCommandLineOption translateOption(QStringList() << "translate", "Translate the source file. Use 'all' to translate all entries.", "all");
+    QCommandLineOption l10nOption("l10n", "Compile localization files.");
+
     parser.addOption(sourceOption);
     parser.addOption(langOption);
-    parser.addOption(destinationOption);
     parser.addOption(fullUpdateOption);
     parser.addOption(interfaceOption);
     parser.addOption(listInterfacesOption);
+    parser.addOption(i18nOption);
+    parser.addOption(translateOption);
+    parser.addOption(l10nOption);
+    parser.addOption(tsFileOption);
+
 
     // Analyse les arguments passés à l'application
     parser.process(a);
@@ -58,14 +75,14 @@ int main(int argc, char *argv[])
     } else {
         w.hide();
         // Mode CLI
-        if (!parser.isSet(sourceOption) || !parser.isSet(langOption)) {
-            qCritical() << "Error: --source and --lang options are mandatory in CLI mode.";
+        if (!parser.isSet(sourceOption)) {
+            qCritical() << "Error: --source options is mandatory in CLI mode.";
             return 1; // Code d'erreur
         }
 
         QString source = parser.value(sourceOption);
         QString lang = parser.value(langOption);
-        QString destination = parser.isSet(destinationOption) ? parser.value(destinationOption) : source;
+        QString tsFile = parser.value(tsFileOption);
         bool fullUpdate = parser.isSet(fullUpdateOption);
 
         // Gestion de l'interface spécifiée par l'utilisateur
@@ -80,26 +97,37 @@ int main(int argc, char *argv[])
         // Affiche les options reçues
         qDebug() << "Source:" << source;
         qDebug() << "Lang:" << lang;
-        qDebug() << "Destination:" << destination;
         qDebug() << "Full Update:" << (fullUpdate ? "Yes" : "No");
 
-        // Exemple de traitement en mode CLI (à remplacer par votre logique réelle)
-        qDebug() << "Processing with the following parameters:";
-        qDebug() << "Source:" << source;
-        qDebug() << "Language:" << lang;
-        qDebug() << "Destination:" << destination;
-        qDebug() << "Full Update:" << fullUpdate;
-        //--source C:/Users/admate/Desktop/fileTranslation_en.ts --lang italian --fullUpdate --destination C:/Users/admate/Desktop/fileTranslation_it.ts
+        // Charger le projet
+        if(w.load(source)) {
+            if(interfaceName != "") {
+                w.setInterface(interfaceName);
+            }
 
-//        if(w.load(source)){
-//            if(interfaceName != ""){
-//                w.setInterface(interfaceName);
-//            }
-//            // reconnecter ca avec la nouvelle class LinguistpageController
-//            w.updateTranslation(lang, fullUpdate);
-//            w.save(destination);
-//        }
-        // Fin du mode CLI
+            // Exécute les fonctionnalités en fonction des options fournies
+            if (parser.isSet(i18nOption)) {
+                qDebug() << "Generating i18n files...";
+                w.getLUpdate()->createFiles();
+            }
+
+            if (parser.isSet(translateOption)) {
+                QString translateOptionValue = parser.value(translateOption);
+                if (translateOptionValue == "all") {
+                    qDebug() << "Translating all entries...";
+                    w.getLInguist()->updateAllTranslation(fullUpdate);
+                } else {
+                    qDebug() << "Translating specific language:" << tsFile;
+                    w.getLInguist()->updateTranslation(tsFile, fullUpdate);
+                }
+            }
+
+            if (parser.isSet(l10nOption)) {
+                qDebug() << "Building localization files...";
+                w.getLRelease()->build();
+            }
+        }
+
         return 0;
     }
 }

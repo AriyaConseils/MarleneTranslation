@@ -10,6 +10,7 @@ RC_ICONS += ressources/MarleneTranslation.ico
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    src/lrelease/lreleasepagecontroler.cpp \
     src/AcceuilPanel/Dialog/dialogabout.cpp \
     src/AcceuilPanel/Dialog/newprojectdialog.cpp \
     src/AcceuilPanel/vues/projectlist.cpp \
@@ -28,6 +29,7 @@ SOURCES += \
     src/3rdParty/TinyXml2/tinyxml2.cpp
 
 HEADERS += \
+    src/lrelease/lreleasepagecontroler.h \
     src/AcceuilPanel/Dialog/dialogabout.h \
     src/AcceuilPanel/Dialog/newprojectdialog.h \
     src/AcceuilPanel/vues/ProjectFileWidget.h \
@@ -49,6 +51,7 @@ HEADERS += \
     src/3rdParty/TinyXml2/tinyxml2.h
 
 FORMS += \
+    src/lrelease/lreleasepagecontroler.ui \
     src/AcceuilPanel/Dialog/dialogabout.ui \
     src/AcceuilPanel/Dialog/newprojectdialog.ui \
     src/AcceuilPanel/vues/projectlist.ui \

@@ -62,6 +62,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
+
+copy "%COMPILERPATH%\libgcc_s_seh-1.dll" "%INSTALLPATH%"
+copy "%COMPILERPATH%\libstdc++-6.dll" "%INSTALLPATH%"
+copy "%COMPILERPATH%\libwinpthread-1.dll" "%INSTALLPATH%"
+
 REM 7. Exécuter le script Inno Setup pour créer l'installateur avec le chemin complet
 echo ====== Création de l'installateur avec Inno Setup ======
 "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "%PROJECTPATH%\MarleneInstaller.iss"

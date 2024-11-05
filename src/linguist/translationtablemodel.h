@@ -51,6 +51,7 @@ public:
 
 
     bool isDurty() const;
+    void waitForFinish() const;
 
 public slots:
     void setLanguage(const QString &language);

@@ -6,6 +6,9 @@
 #include "lupdate/translationextractor.h"
 
 
+class LReleasePageControler;
+class LupdatePageController;
+class LinguistpageController;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -22,9 +25,12 @@ public:
     ~MainWindow();
 
 //    void save(const QString &filePath);
-//    bool load(const QString &filePath);
+    bool load(const QString &filePath);
 
     void setInterface(const QString interface);
+    LReleasePageControler *getLRelease();
+    LupdatePageController *getLUpdate();
+    LinguistpageController *getLInguist();
 
 private slots:
     void on_toolButtonAddInterface_clicked();

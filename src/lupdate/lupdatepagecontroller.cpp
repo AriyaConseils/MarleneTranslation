@@ -32,8 +32,7 @@ void LupdatePageController::loadProject(const QString &path)
     m_lupdate->load();
 }
 
-
-void LupdatePageController::on_pushButtonUpdateTsFiles_clicked()
+void LupdatePageController::createFiles()
 {
     // Vérification des champs obligatoires
     if (ui->widgetProjectVue->getProjectName().isEmpty() ||
@@ -63,4 +62,9 @@ void LupdatePageController::on_pushButtonUpdateTsFiles_clicked()
         m_lupdate->saveToTSFile(outputFileName.toStdString());
     }
     emit tsFilesUpdated();
+}
+
+void LupdatePageController::on_pushButtonUpdateTsFiles_clicked()
+{
+    createFiles();
 }

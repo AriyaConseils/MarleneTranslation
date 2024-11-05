@@ -129,6 +129,23 @@ QTabBar::tab:focus {
        <attribute name="title">
         <string>Lrelease</string>
        </attribute>
+       <layout class="QGridLayout" name="gridLayout">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="LReleasePageControler" name="widgetLReleasePage" native="true"/>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="title">
@@ -180,7 +197,7 @@ QTabBar::tab:focus {
      <x>0</x>
      <y>0</y>
      <width>881</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>
@@ -203,6 +220,12 @@ QTabBar::tab:focus {
    <class>LinguistpageController</class>
    <extends>QWidget</extends>
    <header>src/linguist/linguistpagecontroller.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LReleasePageControler</class>
+   <extends>QWidget</extends>
+   <header>src/lrelease/lreleasepagecontroler.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

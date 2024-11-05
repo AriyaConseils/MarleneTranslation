@@ -15,7 +15,8 @@ class LinguistpageController : public QWidget
 public:
     explicit LinguistpageController(QWidget *parent = nullptr);
     ~LinguistpageController();
-//    void updateTranslation(const QString language, bool fullUpdate);
+    void updateTranslation(const QString &tsFile, bool fullUpdate);
+    void updateAllTranslation(bool fullUpdate);
 
 public slots:
     void setInterfaceName(const QString &interface);

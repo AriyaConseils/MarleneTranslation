@@ -499,3 +499,15 @@ bool TSTranslationModel::updateGeneratedTranslation(const QString &context, cons
     }
     return false; // Message non trouvé
 }
+
+void TSTranslationModel::waitForFinish() const
+{
+    if (activeClientsCount > 0) {
+        QEventLoop loop;
+
+        // Connecte le signal qui indique que toutes les traductions sont terminées pour quitter la boucle
+        connect(this, &TSTranslationModel::allTranslationsCompleted, &loop, &QEventLoop::quit);
+
+        loop.exec(); // Lance la boucle d'attente
+    }
+}

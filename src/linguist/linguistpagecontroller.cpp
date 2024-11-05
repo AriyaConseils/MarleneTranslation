@@ -227,19 +227,28 @@ void LinguistpageController::manageLanguage()
 
 }
 
-//void LinguistpageController::updateTranslation(const QString language, bool fullUpdate)
-//{
-//    if(m_interface == ""){
-//        qDebug() << "Interface not defined!";
-//    }
-//    if(translator.language() != language){
-//        translator.setLanguage(language);
-//    }
-//    translator.generateTranslation(m_interface, fullUpdate);
-//    translator.waitForFinish();
-//    translator.mergeAll();
-//}
+void LinguistpageController::updateTranslation(const QString &tsFile, bool fullUpdate)
+{
+    if(m_interface == ""){
+        qDebug() << "Interface not defined!";
+    }
+    TSTranslationModel *currentModel = m_modelTsFileDictionary.value(tsFile);
+    if(!currentModel){
+        qDebug() << "Update failed: m_currentModel = nullptr";
+        return;
+    }
+    currentModel->generateTranslation(m_interface, fullUpdate);
+    currentModel->waitForFinish();
+    currentModel->mergeAll();
+    currentModel->save(tsFile);
+}
 
+void LinguistpageController::updateAllTranslation(bool fullUpdate)
+{
+    foreach(QString tsFile, m_modelTsFileDictionary.keys()){
+        updateTranslation(tsFile, fullUpdate);
+    }
+}
 
 void LinguistpageController::on_pushButtonUpdate_clicked()
 {
@@ -279,13 +288,21 @@ void LinguistpageController::updateFilesList()
         TSTranslationModel *currentModel = new TSTranslationModel(nullptr);
         currentModel->load(m_currentTsFilesDirectory + "/" + fileName);
         currentModel->setLanguage(FlagsPickerBox::languageFromCodeLanguage(languageCode));
-        connect(currentModel, &TSTranslationModel::durtyChanged, this, [item](bool durty){
+        connect(currentModel, &TSTranslationModel::durtyChanged, this, [item, currentModel](bool durty){
             if(durty){
                 if(!item->text().contains("*")){
                     item->setText(item->text() + "*");
                 }
             } else {
                 item->setText(item->text().remove("*"));
+            }
+
+            if (currentModel->isEmpty()) {
+                item->setBackground(QBrush(QColor(255, 0, 0, 30)));   // Rouge transparent
+            } else if (currentModel->isFullyTranslated()) {
+                item->setBackground(QBrush(QColor(0, 255, 0, 30)));   // Vert transparent
+            } else {
+                item->setBackground(QBrush(QColor(255, 165, 0, 30))); // Orange transparent
             }
         });
 
