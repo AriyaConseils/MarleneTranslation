@@ -297,3 +297,9 @@ QString ProjectVue::getCmd()
 {
     return ui->lineEditExternalCompilator->text() + " " + ui->lineEditCompilationArguments->text();
 }
+
+QString ProjectVue::getCompilationDirectory()
+{
+    return ui->lineEditCompilationDirectory->text();
+}
+

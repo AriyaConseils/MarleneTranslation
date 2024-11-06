@@ -36,6 +36,7 @@ public:
 
     bool isCustomCompilation();
     QString getCmd();
+    QString getCompilationDirectory();
 
 private slots:
     void on_toolButtonSourceCodePath_clicked();

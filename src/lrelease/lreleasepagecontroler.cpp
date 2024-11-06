@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QProcess>
 #include <QEventLoop>
+#include "translator.h"
 
 LReleasePageControler::LReleasePageControler(QWidget *parent) :
     QWidget(parent),
@@ -33,14 +34,13 @@ void LReleasePageControler::loadProject(const QString &path)
 
 void LReleasePageControler::build()
 {
+    QString tsFilesPath = ui->widgetProjectVue->getTsFilesPath();
+    // Obtenir tous les fichiers .ts dans le répertoire tsFilesPath
+    QDir dir(tsFilesPath);
+    QStringList tsFiles = dir.entryList(QStringList() << "*.ts", QDir::Files);
+
     if (ui->widgetProjectVue->isCustomCompilation()) {
         QString cmd = ui->widgetProjectVue->getCmd();
-        QString tsFilesPath = ui->widgetProjectVue->getTsFilesPath();
-
-        // Obtenir tous les fichiers .ts dans le répertoire tsFilesPath
-        QDir dir(tsFilesPath);
-        QStringList tsFiles = dir.entryList(QStringList() << "*.ts", QDir::Files);
-
         foreach (const QString &tsFileName, tsFiles) {
             QString tmpCmd = cmd;
 
@@ -83,6 +83,14 @@ void LReleasePageControler::build()
             if (process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0) {
                 qWarning() << "Erreur lors de l'exécution de la commande pour" << tsFileName;
             }
+        }
+    } else {
+        foreach (const QString &tsFileName, tsFiles) {
+            QString filePath = QDir::toNativeSeparators(dir.absoluteFilePath(tsFileName));
+            QString fileDirectory = QDir::toNativeSeparators(dir.absolutePath());
+            QString baseName = QFileInfo(tsFileName).completeBaseName();
+            QString compiledFile = ui->widgetProjectVue->getCompilationDirectory() + "/" + baseName + ".qmt";
+            CONVERT_TS_TO_QM(filePath.toStdString(), compiledFile.toStdString());
         }
     }
 }

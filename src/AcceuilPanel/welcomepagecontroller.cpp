@@ -14,7 +14,7 @@
 #include <QComboBox>
 #include "Dialog/newprojectdialog.h"
 #include "Dialog/dialogabout.h"
-
+#include "src/lrelease/translator.h"
 
 WelcomePageController::WelcomePageController(QWidget *parent)
     : QWidget(parent)
@@ -53,13 +53,13 @@ void WelcomePageController::on_pushButtonOpenProject_clicked()
 {
     // Ouvrir une boîte de dialogue pour sélectionner un fichier avec l'extension .rrt
     QString filePath = QFileDialog::getOpenFileName(this,
-                                                    tr("Open Project File"),
+                                                    gtr("Open Project File").c_str(),
                                                     QString(),
-                                                    tr("Project Files (*.rrt)"));
+                                                    gtr("Project Files (*.rrt)").c_str());
 
     // Vérifier si un fichier a été sélectionné
     if (filePath.isEmpty()) {
-        QMessageBox::information(this, tr("No File Selected"), tr("Please select a valid project file."));
+        QMessageBox::information(this, gtr("No File Selected").c_str(), gtr("Please select a valid project file.").c_str());
         return;
     }
 

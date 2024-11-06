@@ -227,7 +227,6 @@ QVariant TSTranslationModel::headerData(int section, Qt::Orientation orientation
     return QVariant();
 }
 
-
 bool TSTranslationModel::setData(const QModelIndex &index, const QVariant &value, int role) {
     if (!index.isValid() || role != Qt::EditRole) {
         return false;
@@ -239,13 +238,18 @@ bool TSTranslationModel::setData(const QModelIndex &index, const QVariant &value
     int currentRow = 0;
     for (const auto &context : contexts) {
         auto &messages = translations[context];
+
+        // Vérifie que le row - currentRow est dans les limites de messages
         if (row < currentRow + messages.size()) {
-            auto &message = messages[row - currentRow];
-            if (col == 2) {
-                message.translation = value.toString();
-                emit dataChanged(index, index, {role});
-                emit durtyChanged(true);
-                return true;
+            int messageIndex = row - currentRow;
+            if (messageIndex >= 0 && messageIndex < messages.size()) {
+                auto &message = messages[messageIndex];
+                if (col == 2) {
+                    message.translation = value.toString();
+                    emit dataChanged(index, index, {role});
+                    emit durtyChanged(true);
+                    return true;
+                }
             }
         }
         currentRow += messages.size();

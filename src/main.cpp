@@ -8,12 +8,14 @@
 #include "src/linguist/linguistpagecontroller.h"
 
 
+#include "src/lrelease/translator.h"
 
 
 
 //--source ../testTStoQM/Swiizio.rrt --i18n --translate all --l10n
 int main(int argc, char *argv[])
 {
+    LOAD_TRANSLATIONS("build/MarleneTranslation_de.qmt");
     QApplication a(argc, argv);
     QCoreApplication::setApplicationName("MarleneTranslation");
     QCoreApplication::setApplicationVersion("1.0");
